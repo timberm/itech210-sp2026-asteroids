@@ -10,13 +10,21 @@ pygame.display.set_caption("ITECH 210 ASTEROIDS")
 clock = pygame.time.Clock()
 debug = False
 
+#background music
+pygame.mixer.music.load("notathing2.mp3")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.5)
+
+#bullet sound effect
+bullet_sound = pygame.mixer.Sound('alienshoot2.ogg')
+
 #colors
 BLUE = (31, 81, 255)
 WHITE =(255,255,255)
 
 #fonts
-score_font = pygame.font.SysFont("arial", 30)
-go_font = pygame.font.SysFont("arial", 60)
+score_font = pygame.font.SysFont("showcard gothic", 30)
+go_font = pygame.font.SysFont("showcard gothic", 60)
 
 #load images
 space_ship = pygame.image.load("images/playerShip1_orange.png").convert_alpha()
@@ -25,26 +33,20 @@ space_bg = pygame.image.load("images/bg.jpg")
 asteroid_1 = pygame.image.load("images/meteorBrown_big1.png")
 
 
-
-#fonts
-score_font = pygame.font.SysFont('arial',30)
-go_font = pygame.font.SysFont("arial", 60)
-
 #background
 bg = pygame.transform.scale(space_bg, (WIDTH, HEIGHT))
 
 #player
-player_angle = -90
-player_size = (50,50)
-player_pos = [WIDTH//2, HEIGHT//2]
-player_hit_radius = 18
-player_speed = 20
-player_lives = 3
+# player_angle = -90
+# player_size = (50,50)
+# player_pos = [WIDTH//2, HEIGHT//2]
+# player_hit_radius = 18
+# player_speed = 20
+# player_lives = 3
 player = {
     'angle': -90,
     'size': (50,50),
     'pos':[WIDTH//2, HEIGHT//2],
-    'hit': 18,
     'speed': 20,
     'lives':3,
     'radius': 19,
@@ -77,9 +79,9 @@ def update_player(dt):
     #get input and update position
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT ]:
-        player_angle -= angle * player_speed * dt
+        player['angle'] -= angle * player['speed'] * dt
     if keys[pygame.K_RIGHT ]:
-        player_angle += angle * player_speed * dt
+        player['angle'] += angle * player['speed'] * dt
     
 def update_bullet_position(dt, bullet):
     rad = math.radians(bullet['angle'])
@@ -103,9 +105,9 @@ def update_asteroid_position(dt, asteroid):
     asteroid['pos'][1] += dy
 
 def draw_player(screen):
-    player_sprite = pygame.transform.scale(space_ship, player_size)
+    player_sprite = pygame.transform.scale(space_ship, player['size'])
     player_sprite = pygame.transform.rotate(player_sprite, player['angle']*-1)
-    player_rect = player_sprite.get_rect(center=player_pos)
+    player_rect = player_sprite.get_rect(center=player['pos'])
     screen.blit(player_sprite, player_rect)
 
 def draw_bullet(screen, bullet):
@@ -136,9 +138,9 @@ while running:
     
     #update player position
     if player_input[pygame.K_LEFT ]:
-        player['angle'] -= player_speed * dt
+        player['angle'] -= player['speed'] * dt
     if player_input[pygame.K_RIGHT ]:
-        player['angle'] += player_speed * dt
+        player['angle'] += player['speed'] * dt
     
     #spawn bullets
     if player_input[pygame.K_SPACE] and tick > bullet_last_fire + bullet_fire_rate:
@@ -149,11 +151,18 @@ while running:
             'radius': 4
         })
         bullet_last_fire = tick
+        bullet_sound.play()
 
     #update bullet position
+    for i in range(len(bullets)):
+        if check_offscreen(bullets[i]) == False:
+            update_bullet_position(dt, bullets[i])
+
     
     #check for bullets off screen
-        
+
+
+
     #spawn asteroids
     if tick > asteroid_last_spawn + asteroid_spawn_rate:
         pos = random.choice(asteroid_spawn_locations).copy()
@@ -168,9 +177,19 @@ while running:
         asteroid_last_spawn = tick
 
     #update asteroid position
+    # update_asteroid_position(dt, bullets)
+    for i in range(len(asteroids)):
+        update_asteroid_position(dt, asteroids[i])
 
-    #check for asteroids off screen
+
+
     
+    #check for asteroids off screen
+    #if check_offscreen(asteroid) == True:
+
+
+
+
     #check for collisions with asteroids
     for asteroid in asteroids:
         if math.dist(asteroid['pos'], player['pos']) < asteroid['radius'] + player['radius']:
@@ -197,9 +216,15 @@ while running:
     screen.blit(bg, (0,0))
 
     #draw bullets
+    for i in range(len(bullets)):
+        draw_bullet(screen, bullets[i])
+
 
     #draw asteroids
-    
+    for i in range(len(asteroids)):
+        draw_asteroid(screen, asteroids[i])
+
+
 
     #draw player
     #if the player is in invincible state flicker the sprit

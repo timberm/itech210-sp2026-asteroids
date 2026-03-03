@@ -19,3 +19,6 @@ that travels slightly different directions.
 7)Those smaller asteroids should only be worth 5 points.  Adjust the way
 scoring is done to accompdate this.  There are several ways to make this 
 happen.
+
+
+at least one of each: while, for, for each
